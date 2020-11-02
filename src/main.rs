@@ -18,9 +18,23 @@ fn main() {
 }
 
 fn try_find_beeps() {
+    const chuck_size: usize = 256;
+    
     let samples = get_indexed_samples("samples/marc01.wav", 1);
     println!("Min: {}", samples.iter().map(|(_, s)| s).min().unwrap());
     println!("Max: {}", samples.iter().map(|(_, s)| s).max().unwrap());
+
+    let amplitudes = samples.chunks(chuck_size).map(|c| avg_abs_amp(c));
+    let mut i = 0;
+    for a in amplitudes {
+        println!("Chunk no. {} has avg amp of: {}", i, a);
+        i += 1;
+    }
+}
+
+fn avg_abs_amp(frame: &[Sample]) -> u32 {
+    let sum: u128 = frame.iter().map(|(_, s)| s.abs() as u128).sum();
+    (sum / frame.len() as u128) as u32
 }
 
 fn run_fft() {
@@ -74,7 +88,7 @@ fn get_indexed_samples<'a>(filename: &str, resolution: u32) -> Vec<Sample> {
 
     println!("Actual number of samples in file: {}", number);
     println!(
-        "Filtered number of samples in file: {}",
+        "Filtered number of samples returned: {}",
         number / resolution
     );
 
