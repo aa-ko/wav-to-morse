@@ -19,19 +19,26 @@ fn main() {
 
 fn try_find_beeps() {
     const chuck_size: usize = 256;
-    
-    let samples = get_indexed_samples("samples/marc01.wav", 1);
+    const threshold: f64 = 0.5;
+
+    let samples = get_indexed_samples("samples/marc03.wav", 1);
     println!("Min: {}", samples.iter().map(|(_, s)| s).min().unwrap());
     println!("Max: {}", samples.iter().map(|(_, s)| s).max().unwrap());
 
-    let amplitudes = samples.chunks(chuck_size).map(|c| avg_abs_amp(c));
-    let mut i = 0;
-    for a in amplitudes {
-        println!("Chunk no. {} has avg amp of: {}", i, a);
-        i += 1;
+    let amplitudes: Vec<Frame> = samples
+        .chunks(chuck_size)
+        .map(|c| avg_abs_amp(c))
+        .enumerate()
+        .collect();
+    
+    let normalized = normalize(amplitudes);    
+    let quantized_frames: Vec<bool> = normalized.iter().map(|(_, v)| if *v > threshold { true } else { false }).collect();
+    if let Some(result) = parser::translate(quantized_frames) {
+        println!("Result: {}", result);
     }
 }
 
+type Frame = (usize, u32);
 fn avg_abs_amp(frame: &[Sample]) -> u32 {
     let sum: u128 = frame.iter().map(|(_, s)| s.abs() as u128).sum();
     (sum / frame.len() as u128) as u32
@@ -52,12 +59,43 @@ fn run_fft() {
     println!("Foo!");
 }
 
-fn render_scatter() {
-    let all_samples = get_indexed_samples("samples/marc01.wav", 10);
+type NormalizedFrame = (usize, f64);
+fn normalize(frames: Vec<Frame>) -> Vec<NormalizedFrame> {
+    let min = frames.iter().map(|(_, s)| s).min().unwrap();
+    let max = frames.iter().map(|(_, s)| s).max().unwrap();
+    let div = (max - min) as f64;
+    frames.iter().map(|(i, v)| (*i, (v - min) as f64 / div)).collect()
+}
 
-    let num_of_samples = all_samples.len();
+fn render_frames(indexed_frames: Vec<NormalizedFrame>) {
+    let num_of_samples = indexed_frames.len();
 
-    let indexed_samples = all_samples
+    let indexed_samples = indexed_frames
+        .iter()
+        .map(|(i, s)| (*i as f64, *s as f64))
+        .collect();
+
+    let s1: Plot = Plot::new(indexed_samples).point_style(
+        PointStyle::new()
+            .marker(PointMarker::Circle)
+            .size(0.3)
+            .colour("#DD3355"),
+    );
+
+    let v = ContinuousView::new()
+        .add(s1)
+        .x_range(0., num_of_samples as f64)
+        .y_range(0., 1.)
+        .x_label("frame_index")
+        .y_label("normalized_value");
+
+    Page::single(&v).save("scatter-frames.svg").unwrap();
+}
+
+fn render_samples(indexed_samples: Vec<Sample>) {
+    let num_of_samples = indexed_samples.len();
+
+    let indexed_samples = indexed_samples
         .iter()
         .map(|(i, s)| (*i as f64, *s as f64))
         .collect();
@@ -77,14 +115,14 @@ fn render_scatter() {
         .x_label("sample")
         .y_label("value");
 
-    Page::single(&v).save("scatter.svg").unwrap();
+    Page::single(&v).save("scatter-samples.svg").unwrap();
 }
 
-type Sample = (u32, i32);
-fn get_indexed_samples<'a>(filename: &str, resolution: u32) -> Vec<Sample> {
+type Sample = (usize, i32);
+fn get_indexed_samples<'a>(filename: &str, resolution: usize) -> Vec<Sample> {
     let mut reader = hound::WavReader::open(filename).unwrap();
     let all_samples = reader.samples::<i32>();
-    let number = all_samples.len() as u32;
+    let number = all_samples.len();
 
     println!("Actual number of samples in file: {}", number);
     println!(
@@ -92,9 +130,7 @@ fn get_indexed_samples<'a>(filename: &str, resolution: u32) -> Vec<Sample> {
         number / resolution
     );
 
-    let temp = all_samples
-        .enumerate()
-        .map(|(i, s)| (i as u32, s.unwrap() as i32));
+    let temp = all_samples.enumerate().map(|(i, s)| (i, s.unwrap() as i32));
 
     if resolution > 1 {
         temp.filter(|(i, _)| i % resolution == 0).collect()
