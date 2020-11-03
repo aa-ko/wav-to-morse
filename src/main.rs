@@ -18,7 +18,7 @@ fn main() {
 }
 
 fn try_find_beeps() {
-    const chuck_size: usize = 256;
+    const chuck_size: usize = 128;
     const threshold: f64 = 0.5;
 
     let samples = get_indexed_samples("samples/marc03.wav", 1);
@@ -33,9 +33,11 @@ fn try_find_beeps() {
     
     let normalized = normalize(amplitudes);    
     let quantized_frames: Vec<bool> = normalized.iter().map(|(_, v)| if *v > threshold { true } else { false }).collect();
-    if let Some(result) = parser::translate(quantized_frames) {
-        println!("Result: {}", result);
-    }
+    
+    parser::translate(quantized_frames);
+    // if let Some(result) = parser::translate(quantized_frames) {
+    //     println!("Result: {}", result);
+    // }
 }
 
 type Frame = (usize, u32);

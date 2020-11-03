@@ -47,9 +47,17 @@ impl ParserStateCounter {
 }
 
 // TODO: Implement single unit length const.
-pub fn translate(quantized_frames: Vec<bool>) -> Option<String> {
-    const half_unit_size: usize = 2;
+pub fn translate(quantized_frames: Vec<bool>) {
+    for hus in 1..20 {
+        println!(
+            "Half unit size '{}' yielded: {}",
+            hus,
+            foo(&quantized_frames, hus).unwrap()
+        );
+    }
+}
 
+fn foo(quantized_frames: &Vec<bool>, half_unit_size: usize) -> Option<String> {
     let mut tokens: Vec<MorseToken> = vec![];
 
     let mut c = ParserStateCounter {
@@ -57,9 +65,7 @@ pub fn translate(quantized_frames: Vec<bool>) -> Option<String> {
         c_true: 0,
         c_false: 0,
     };
-    for f in quantized_frames {
-        println!("{}", f);
-
+    for &f in quantized_frames {
         if f {
             c.c_true += 1;
         } else {
@@ -103,12 +109,6 @@ pub fn translate(quantized_frames: Vec<bool>) -> Option<String> {
             }
         }
     }
-
-    // for d in tokens {
-    //     println!("{}", d);
-    // }
-
-    //Some("_".to_owned())
     to_ascii(tokens)
 }
 
