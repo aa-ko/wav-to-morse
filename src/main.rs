@@ -35,9 +35,6 @@ fn try_find_beeps() {
     let quantized_frames: Vec<bool> = normalized.iter().map(|(_, v)| if *v > threshold { true } else { false }).collect();
     
     parser::translate(quantized_frames);
-    // if let Some(result) = parser::translate(quantized_frames) {
-    //     println!("Result: {}", result);
-    // }
 }
 
 type Frame = (usize, u32);
