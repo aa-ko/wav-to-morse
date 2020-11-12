@@ -9,10 +9,15 @@ use rustfft::num_complex::Complex;
 use rustfft::num_traits::Zero;
 use rustfft::FFTplanner;
 
+#[macro_use]
+extern crate clap;
+use clap::App;
+
 pub mod parser;
 
 fn main() {
-    println!("Moin!");
+    let yaml = load_yaml!("cli.yml");
+    let matches = App::from_yaml(yaml).get_matches();
     try_find_beeps();
 }
 

@@ -1,0 +1,28 @@
+name: wav-to-morse
+version: "0.1.0"
+author: Aaron K. <github@aaronkorte.xyz>
+about: Extract Morse code from a .wav file.
+args:
+  - INPUT:
+      help: Sets the input file to use
+      required: true
+      index: 1
+  - verbose:
+      short: v
+      multiple: true
+      help: Sets the level of verbosity
+  - sample-resolution:
+      short: r
+      takes_value: true
+      required: false
+      help: Only use every n-th sample from the source file
+  - framesize:
+      short: f
+      takes_value: true
+      required: false
+      help: Set the number of samples that should be aggregated into single frame
+  - quantization-threshold:
+      short: t
+      takes_value: true
+      required: false
+      help: Set the threshold at which to distinguish noise from Morse code
