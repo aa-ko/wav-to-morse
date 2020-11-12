@@ -13,27 +13,29 @@ pub mod parser;
 
 fn main() {
     println!("Moin!");
-
     try_find_beeps();
 }
 
 fn try_find_beeps() {
-    const chuck_size: usize = 128;
-    const threshold: f64 = 0.5;
+    const FRAME_SIZE: usize = 128;
+    const THRESHOLD: f64 = 0.5;
 
     let samples = get_indexed_samples("samples/marc03.wav", 1);
     println!("Min: {}", samples.iter().map(|(_, s)| s).min().unwrap());
     println!("Max: {}", samples.iter().map(|(_, s)| s).max().unwrap());
 
     let amplitudes: Vec<Frame> = samples
-        .chunks(chuck_size)
+        .chunks(FRAME_SIZE)
         .map(|c| avg_abs_amp(c))
         .enumerate()
         .collect();
-    
-    let normalized = normalize(amplitudes);    
-    let quantized_frames: Vec<bool> = normalized.iter().map(|(_, v)| if *v > threshold { true } else { false }).collect();
-    
+
+    let normalized = normalize(amplitudes);
+    let quantized_frames: Vec<bool> = normalized
+        .iter()
+        .map(|(_, v)| if *v > THRESHOLD { true } else { false })
+        .collect();
+
     parser::translate(quantized_frames);
 }
 
@@ -63,7 +65,10 @@ fn normalize(frames: Vec<Frame>) -> Vec<NormalizedFrame> {
     let min = frames.iter().map(|(_, s)| s).min().unwrap();
     let max = frames.iter().map(|(_, s)| s).max().unwrap();
     let div = (max - min) as f64;
-    frames.iter().map(|(i, v)| (*i, (v - min) as f64 / div)).collect()
+    frames
+        .iter()
+        .map(|(i, v)| (*i, (v - min) as f64 / div))
+        .collect()
 }
 
 fn render_frames(indexed_frames: Vec<NormalizedFrame>) {
