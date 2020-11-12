@@ -20,13 +20,13 @@ pub mod parser;
 fn main() {
     let config = parse_cli_arguments();
     println!("{}", config);
-    //try_find_beeps();
+    try_find_beeps(&config);
 }
 
 fn parse_cli_arguments() -> ComputationArguments {
     let yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(yaml).get_matches();
-    
+
     const DEFAULT_FRAMESIZE: usize = 128;
     const DEFAULT_QUANTIZATION_THRESHOLD: f64 = 0.5;
     const DEFAULT_SAMPLE_RESOLUTION: usize = 1;
@@ -35,24 +35,29 @@ fn parse_cli_arguments() -> ComputationArguments {
     ComputationArguments {
         input_file: matches.value_of("INPUT").unwrap().to_owned(),
         framesize: parse_argument(&matches, "framesize", DEFAULT_FRAMESIZE),
-        quantization_threshold: parse_argument(&matches, "quantization_threshold", DEFAULT_QUANTIZATION_THRESHOLD),
+        quantization_threshold: parse_argument(
+            &matches,
+            "quantization_threshold",
+            DEFAULT_QUANTIZATION_THRESHOLD,
+        ),
         sample_resolution: parse_argument(&matches, "sample_resolution", DEFAULT_SAMPLE_RESOLUTION),
-        threadcount: parse_argument(&matches, "threadcount", default_threadcount)
+        threadcount: parse_argument(&matches, "threadcount", default_threadcount),
     }
 }
 
-fn parse_argument<T>(matches: &clap::ArgMatches, arg: &str, default: T) -> T where T: std::str::FromStr {
+fn parse_argument<T>(matches: &clap::ArgMatches, arg: &str, default: T) -> T
+where
+    T: std::str::FromStr,
+{
     match matches.value_of(arg) {
-        Some(arg) => {
-            match arg.parse() {
-                Ok(res) => res,
-                Err(_) => {
-                    println!("Cannot parse argument string '{}'.", arg);
-                    default
-                }
+        Some(arg) => match arg.parse() {
+            Ok(res) => res,
+            Err(_) => {
+                println!("Cannot parse argument string '{}'.", arg);
+                default
             }
-        }
-        None => default
+        },
+        None => default,
     }
 }
 
@@ -62,31 +67,28 @@ struct ComputationArguments {
     framesize: usize,
     quantization_threshold: f64,
     sample_resolution: usize,
-    threadcount: usize
+    threadcount: usize,
 }
 
 impl std::fmt::Display for ComputationArguments {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ComputationArguments")
-        .field("Input file", &self.input_file)
-        .field("Frame size", &self.framesize)
-        .field("Quantization threshold", &self.quantization_threshold)
-        .field("Sample resolution", &self.sample_resolution)
-        .field("Thread count", &self.threadcount)
-        .finish()
+            .field("Input file", &self.input_file)
+            .field("Frame size", &self.framesize)
+            .field("Quantization threshold", &self.quantization_threshold)
+            .field("Sample resolution", &self.sample_resolution)
+            .field("Thread count", &self.threadcount)
+            .finish()
     }
 }
 
-fn try_find_beeps() {
-    const FRAME_SIZE: usize = 128;
-    const THRESHOLD: f64 = 0.5;
-
-    let samples = get_indexed_samples("samples/marc03.wav", 1);
+fn try_find_beeps(config: &ComputationArguments) {
+    let samples = get_indexed_samples(config.input_file.as_str(), config.sample_resolution);
     println!("Min: {}", samples.iter().map(|(_, s)| s).min().unwrap());
     println!("Max: {}", samples.iter().map(|(_, s)| s).max().unwrap());
 
     let amplitudes: Vec<Frame> = samples
-        .chunks(FRAME_SIZE)
+        .chunks(config.framesize)
         .map(|c| avg_abs_amp(c))
         .enumerate()
         .collect();
@@ -94,7 +96,13 @@ fn try_find_beeps() {
     let normalized = normalize(amplitudes);
     let quantized_frames: Vec<bool> = normalized
         .iter()
-        .map(|(_, v)| if *v > THRESHOLD { true } else { false })
+        .map(|(_, v)| {
+            if *v > config.quantization_threshold {
+                true
+            } else {
+                false
+            }
+        })
         .collect();
 
     parser::translate(quantized_frames);
