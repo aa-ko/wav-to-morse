@@ -26,3 +26,8 @@ args:
       takes_value: true
       required: false
       help: Set the threshold at which to distinguish noise from Morse code
+  - threadcount:
+      short: j
+      takes_value: true
+      required: false
+      help: Set the number of threads that will be spawned to process the input file
