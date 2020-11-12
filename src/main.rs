@@ -37,10 +37,10 @@ fn parse_cli_arguments() -> ComputationArguments {
         framesize: parse_argument(&matches, "framesize", DEFAULT_FRAMESIZE),
         quantization_threshold: parse_argument(
             &matches,
-            "quantization_threshold",
+            "quantization-threshold",
             DEFAULT_QUANTIZATION_THRESHOLD,
         ),
-        sample_resolution: parse_argument(&matches, "sample_resolution", DEFAULT_SAMPLE_RESOLUTION),
+        sample_resolution: parse_argument(&matches, "sample-resolution", DEFAULT_SAMPLE_RESOLUTION),
         threadcount: parse_argument(&matches, "threadcount", default_threadcount),
     }
 }
