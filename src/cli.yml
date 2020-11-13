@@ -1,33 +1,55 @@
 name: wav-to-morse
 version: "0.1.0"
-author: Aaron K. <github@aaronkorte.xyz>
+author: Aaron Korte <github@aaronkorte.xyz>
 about: Extract Morse code from a .wav file.
-args:
-  - INPUT:
-      help: Sets the input file to use
-      required: true
-      index: 1
-  - verbose:
-      short: v
-      multiple: true
-      help: Sets the level of verbosity
-  - sample-resolution:
-      short: r
-      takes_value: true
-      required: false
-      help: Only use every n-th sample from the source file
-  - framesize:
-      short: f
-      takes_value: true
-      required: false
-      help: Set the number of samples that should be aggregated into single frame
-  - quantization-threshold:
-      short: t
-      takes_value: true
-      required: false
-      help: Set the threshold at which to distinguish noise from Morse code
-  - threadcount:
-      short: j
-      takes_value: true
-      required: false
-      help: Set the number of threads that will be spawned to process the input file
+subcommands:
+    - amp:
+          version: "0.1.0"
+          author: Aaron Korte <github@aaronkorte.xyz>
+          about: Process a file using amplitude-based analysis
+          args:
+              - INPUT:
+                    help: Sets the input file to use
+                    required: true
+                    index: 1
+              - verbose:
+                    short: v
+                    multiple: true
+                    help: Sets the level of verbosity
+              - sample-resolution:
+                    short: r
+                    takes_value: true
+                    required: false
+                    help: Only use every n-th sample from the source file
+              - framesize:
+                    short: f
+                    takes_value: true
+                    required: false
+                    help: Set the number of samples that should be aggregated into single frame
+              - quantization-threshold:
+                    short: t
+                    takes_value: true
+                    required: false
+                    help: Set the threshold at which to distinguish noise from Morse code signal
+    - fft:
+          version: "0.1.0"
+          author: Aaron Korte <github@aaronkorte.xyz>  
+          about: Process a file using FFT-based analysis
+          args:
+              - INPUT:
+                    help: Sets the input file to use
+                    required: true
+                    index: 1
+              - verbose:
+                    short: v
+                    multiple: true
+                    help: Sets the level of verbosity  
+              - threadcount:
+                    short: j
+                    takes_value: true
+                    required: false
+                    help: Set the maximum number of threads that will be spawned for multithreaded operations
+    - render:
+          version: "0.1.0"
+          author: Aaron Korte <github@aaronkorte.xyz>  
+          about: Produce a scatter plot from various stages of processed data

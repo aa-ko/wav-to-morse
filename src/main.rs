@@ -20,7 +20,8 @@ pub mod parser;
 fn main() {
     let config = parse_cli_arguments();
     println!("{}", config);
-    try_find_beeps(&config);
+    //try_find_beeps(&config);
+    run_fft(&config);
 }
 
 fn parse_cli_arguments() -> ComputationArguments {
@@ -114,19 +115,23 @@ fn avg_abs_amp(frame: &[Sample]) -> u32 {
     (sum / frame.len() as u128) as u32
 }
 
-fn run_fft() {
-    let mut reader = hound::WavReader::open("samples/marc01.wav").unwrap();
-    let all_samples = reader.samples::<i16>().map(|s| s.unwrap() as f32);
-    println!("Number of samples in file: {}", all_samples.len());
+fn run_fft(config: &ComputationArguments) {
+    let raw_samples = get_indexed_samples(config.input_file.as_str(), config.sample_resolution);
+    let samples = raw_samples.iter().map(|(_, s)| *s as f32);
+    let samples_num = samples.len();
+    
+    println!("Number of samples in file: {}", samples_num);
 
-    let mut input: Vec<Complex<f32>> = all_samples.map(|f| Complex::new(f, 0.)).collect();
-    let mut output: Vec<Complex<f32>> = vec![Complex::zero(); 249824];
+    let mut input: Vec<Complex<f32>> = samples.map(|f| Complex::new(f, 0.)).collect();
+    let mut output: Vec<Complex<f32>> = vec![Complex::zero(); samples_num];
 
     let mut planner = FFTplanner::new(false);
-    let fft = planner.plan_fft(249824);
+    let fft = planner.plan_fft(samples_num);
     fft.process(&mut input, &mut output);
 
-    println!("Foo!");
+    for r in output {
+        println!("{}", r);
+    }    
 }
 
 type NormalizedFrame = (usize, f64);
@@ -192,7 +197,7 @@ fn render_samples(indexed_samples: Vec<Sample>) {
 }
 
 type Sample = (usize, i32);
-fn get_indexed_samples<'a>(filename: &str, resolution: usize) -> Vec<Sample> {
+fn get_indexed_samples(filename: &str, resolution: usize) -> Vec<Sample> {
     let mut reader = hound::WavReader::open(filename).unwrap();
     let all_samples = reader.samples::<i32>();
     let number = all_samples.len();
