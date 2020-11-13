@@ -99,7 +99,7 @@ impl std::fmt::Display for ComputationArguments {
 enum Subcommand {
     Amp,
     Fft,
-    Render
+    Render,
 }
 
 impl Subcommand {
@@ -109,11 +109,10 @@ impl Subcommand {
                 "amp" => Subcommand::Amp,
                 "fft" => Subcommand::Fft,
                 "render" => Subcommand::Render,
-                _ => panic!("Unable to determine subcommand")
+                _ => panic!("Invalid subcommand."),
             }
-        }
-        else {
-            panic!("Unable to determine subcommand")
+        } else {
+            panic!("No subcommand found.")
         }
     }
 }
@@ -154,7 +153,7 @@ fn run_fft(config: &ComputationArguments) {
     let raw_samples = get_indexed_samples(config.input_file.as_str(), config.sample_resolution);
     let samples = raw_samples.iter().map(|(_, s)| *s as f32);
     let samples_num = samples.len();
-    
+
     println!("Number of samples in file: {}", samples_num);
 
     let mut input: Vec<Complex<f32>> = samples.map(|f| Complex::new(f, 0.)).collect();
@@ -166,7 +165,7 @@ fn run_fft(config: &ComputationArguments) {
 
     for r in output {
         println!("{}", r);
-    }    
+    }
 }
 
 type NormalizedFrame = (usize, f64);
