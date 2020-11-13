@@ -26,6 +26,7 @@ impl fmt::Display for MorseToken {
     }
 }
 
+// TODO: TokenPause, CharacterPause, WordPause
 enum ParserState {
     Short,
     Long,
@@ -52,12 +53,12 @@ pub fn translate(quantized_frames: Vec<bool>) {
         println!(
             "Half unit size '{}' yielded: {}",
             hus,
-            foo(&quantized_frames, hus).unwrap()
+            find_morse_tokens(&quantized_frames, hus).unwrap()
         );
     }
 }
 
-fn foo(quantized_frames: &Vec<bool>, half_unit_size: usize) -> Option<String> {
+fn find_morse_tokens(quantized_frames: &Vec<bool>, half_unit_size: usize) -> Option<String> {
     let mut tokens: Vec<MorseToken> = vec![];
 
     let mut c = ParserStateCounter {

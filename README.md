@@ -8,3 +8,4 @@ CLI tool to extract Morse code beeps from a .wav file and translate it to ASCII.
 * It might be beneficial for performance to not collect all iterators all the time, but I might be wrong about this
 * Move parsing logic into a library and seperate it from the CLI wrapper
 * Run FFT on each sample, ideally in parallel
+* Utilize a logging library and respect given -v arguments

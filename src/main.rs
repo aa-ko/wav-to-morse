@@ -62,6 +62,7 @@ where
     }
 }
 
+// TODO: Split this into base arguments and subcommand arguments?
 #[derive(Debug)]
 struct ComputationArguments {
     input_file: String,
@@ -81,6 +82,13 @@ impl std::fmt::Display for ComputationArguments {
             .field("Thread count", &self.threadcount)
             .finish()
     }
+}
+
+// TODO: Include cli arguments?
+enum Subcommand {
+    Amp,
+    Fft,
+    Render
 }
 
 fn try_find_beeps(config: &ComputationArguments) {
