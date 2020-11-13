@@ -20,20 +20,31 @@ pub mod parser;
 fn main() {
     let config = parse_cli_arguments();
     println!("{}", config);
-    //try_find_beeps(&config);
-    run_fft(&config);
+
+    match config.mode {
+        Subcommand::Amp => {
+            try_find_beeps(&config);
+        }
+        Subcommand::Fft => {
+            run_fft(&config);
+        }
+        Subcommand::Render => {
+            todo!("Not implemented yet.");
+        }
+    }
 }
 
 fn parse_cli_arguments() -> ComputationArguments {
-    let yaml = load_yaml!("cli.yml");
-    let matches = App::from_yaml(yaml).get_matches();
-
     const DEFAULT_FRAMESIZE: usize = 128;
     const DEFAULT_QUANTIZATION_THRESHOLD: f64 = 0.5;
     const DEFAULT_SAMPLE_RESOLUTION: usize = 1;
     let default_threadcount: usize = num_cpus::get();
 
+    let yaml = load_yaml!("cli.yml");
+    let matches = App::from_yaml(yaml).get_matches();
+
     ComputationArguments {
+        mode: Subcommand::from_str(matches.subcommand_name()),
         input_file: matches.value_of("INPUT").unwrap().to_owned(),
         framesize: parse_argument(&matches, "framesize", DEFAULT_FRAMESIZE),
         quantization_threshold: parse_argument(
@@ -63,8 +74,8 @@ where
 }
 
 // TODO: Split this into base arguments and subcommand arguments?
-#[derive(Debug)]
 struct ComputationArguments {
+    mode: Subcommand,
     input_file: String,
     framesize: usize,
     quantization_threshold: f64,
@@ -89,6 +100,22 @@ enum Subcommand {
     Amp,
     Fft,
     Render
+}
+
+impl Subcommand {
+    fn from_str(s: Option<&str>) -> Subcommand {
+        if let Some(a) = s {
+            match a {
+                "amp" => Subcommand::Amp,
+                "fft" => Subcommand::Fft,
+                "render" => Subcommand::Render,
+                _ => panic!("Unable to determine subcommand")
+            }
+        }
+        else {
+            panic!("Unable to determine subcommand")
+        }
+    }
 }
 
 fn try_find_beeps(config: &ComputationArguments) {
