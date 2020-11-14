@@ -3,10 +3,11 @@ extern crate clap;
 extern crate num_cpus;
 
 mod amp;
-mod fft;
-mod config;
-mod preprocess;
 mod ascii;
+mod config;
+mod fft;
+mod preprocess;
+mod render;
 
 fn main() {
     let config = config::parse_cli_arguments();

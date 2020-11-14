@@ -3,7 +3,7 @@ use plotlib::repr::Plot;
 use plotlib::style::{PointMarker, PointStyle};
 use plotlib::view::ContinuousView;
 
-pub fn render_frames(indexed_frames: Vec<preprocess::NormalizedFrame>) {
+pub fn render_frames(indexed_frames: Vec<super::preprocess::NormalizedFrame>) {
     let num_of_samples = indexed_frames.len();
 
     let indexed_samples = indexed_frames
@@ -28,7 +28,7 @@ pub fn render_frames(indexed_frames: Vec<preprocess::NormalizedFrame>) {
     Page::single(&v).save("scatter-frames.svg").unwrap();
 }
 
-pub fn render_samples(indexed_samples: Vec<preprocess::Sample>) {
+pub fn render_samples(indexed_samples: Vec<super::preprocess::Sample>) {
     let num_of_samples = indexed_samples.len();
 
     let indexed_samples = indexed_samples
