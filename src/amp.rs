@@ -1,8 +1,6 @@
 pub fn try_find_beeps(config: &super::config::ComputationArguments) {
     let samples = super::preprocess::get_indexed_samples(config.input_file.as_str(), config.sample_resolution);
-    println!("Min: {}", samples.iter().map(|(_, s)| s).min().unwrap());
-    println!("Max: {}", samples.iter().map(|(_, s)| s).max().unwrap());
-
+    
     let amplitudes: Vec<super::preprocess::Frame> = samples
         .chunks(config.framesize)
         .map(|c| avg_abs_amp(c))
