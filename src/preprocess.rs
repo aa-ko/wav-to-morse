@@ -8,12 +8,15 @@ pub type SampleVec = Vec<Sample>;
 pub type FrameVec = Vec<Frame>;
 pub type NormalizedFrameVec = Vec<NormalizedFrame>;
 
-trait MinMax<T> {
+
+// TODO: This trait is shit.
+trait VecUtil<T> {
     fn vecmin(&self) -> T;
     fn vecmax(&self) -> T;
+    fn normalize(&self) -> Vec<f64>;
 }
 
-impl MinMax<i32> for SampleVec {
+impl VecUtil<i32> for SampleVec {
     fn vecmin(&self) -> i32 {
         self.iter().map(|(_, s)| s).min().unwrap().to_owned()
     }
@@ -21,9 +24,13 @@ impl MinMax<i32> for SampleVec {
     fn vecmax(&self) -> i32 {
         self.iter().map(|(_, s)| s).max().unwrap().to_owned()
     }
+
+    fn normalize(&self) -> Vec<f64> {
+        todo!();
+    }
 }
 
-impl MinMax<u32> for FrameVec {
+impl VecUtil<u32> for FrameVec {
     fn vecmin(&self) -> u32 {
         self.iter().map(|(_, s)| s).min().unwrap().to_owned()
     }
@@ -31,28 +38,31 @@ impl MinMax<u32> for FrameVec {
     fn vecmax(&self) -> u32 {
         self.iter().map(|(_, s)| s).max().unwrap().to_owned()
     }
+
+    fn normalize(&self) -> Vec<f64> {
+        todo!()
+    }
 }
 
-// impl MinMax<f64> for NormalizedFrameVec {
-//     fn vecmin(&self) -> f64 {
-//         self.iter().map(|(_, s)| s).min().unwrap().to_owned()
-//     }
+impl VecUtil<f64> for NormalizedFrameVec {
+    fn vecmin(&self) -> f64 {
+        todo!();
+    }
 
-//     fn vecmax(&self) -> f64 {
-//         self.iter().map(|(_, s)| s).max().unwrap().to_owned()
-//     }
-// }
+    fn vecmax(&self) -> f64 {
+        todo!();
+    }
+
+    fn normalize(&self) -> Vec<f64> {
+        let min = self.vecmin();
+        let max = self.vecmax();
+        let div = (max - min) as f64;
+        self.iter().map(|(_, v)| (v - min) as f64 / div).collect()
+    }
+}
 
 pub fn normalize_frames(frames: FrameVec) -> NormalizedFrameVec {
-    //let min = frames.iter().map(|(_, s)| s).min().unwrap();
-    //let max = frames.iter().map(|(_, s)| s).max().unwrap();
-    let min = frames.vecmin();
-    let max = frames.vecmax();
-    let div = (max - min) as f64;
-    frames
-        .iter()
-        .map(|(i, v)| (*i, (v - min) as f64 / div))
-        .collect()
+    frames.normalize().iter().enumerate().map(|(l, r)| (l, *r)).collect()
 }
 
 pub fn get_indexed_samples(filename: &str, resolution: usize) -> SampleVec {
@@ -65,14 +75,21 @@ pub fn get_indexed_samples(filename: &str, resolution: usize) -> SampleVec {
         "Filtered number of samples returned: {}",
         samples_len / resolution
     );
-    
-    let samples: SampleVec = wav_samples.enumerate().map(|(i, s)| (i, s.unwrap())).collect();
-    
+
+    let samples: SampleVec = wav_samples
+        .enumerate()
+        .map(|(i, s)| (i, s.unwrap()))
+        .collect();
+
     println!("Min: {}", samples.iter().map(|(_, s)| s).min().unwrap());
     println!("Max: {}", samples.iter().map(|(_, s)| s).max().unwrap());
 
     if resolution > 1 {
-        samples.iter().filter(|(i, _)| i % resolution == 0).map(|s: &Sample| s.clone()).collect()
+        samples
+            .iter()
+            .filter(|(i, _)| i % resolution == 0)
+            .map(|s: &Sample| s.clone())
+            .collect()
     } else {
         samples
     }
