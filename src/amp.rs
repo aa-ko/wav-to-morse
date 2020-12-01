@@ -1,16 +1,17 @@
+use super::preprocess::*;
+
 pub fn try_find_beeps(config: &super::config::ComputationArguments) {
     let samples = super::preprocess::get_indexed_samples(config.input_file.as_str(), config.sample_resolution);
     
-    let amplitudes: Vec<super::preprocess::Frame> = samples
+    let amplitudes: Vec<u32> = samples
         .chunks(config.framesize)
         .map(|c| avg_abs_amp(c))
-        .enumerate()
         .collect();
 
-    let normalized = super::preprocess::normalize_frames(amplitudes);
+    let normalized = amplitudes.normalize();
     let quantized_frames: Vec<bool> = normalized
         .iter()
-        .map(|(_, v)| {
+        .map(|v| {
             if *v > config.quantization_threshold {
                 true
             } else {

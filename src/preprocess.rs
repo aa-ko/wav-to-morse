@@ -4,68 +4,64 @@ pub type Sample = (usize, i32);
 pub type Frame = (usize, u32);
 pub type NormalizedFrame = (usize, f64);
 
-pub type SampleVec = Vec<Sample>;
-pub type FrameVec = Vec<Frame>;
-pub type NormalizedFrameVec = Vec<NormalizedFrame>;
-
-
-// TODO: This trait is shit.
-trait VecUtil<T> {
+pub trait VecUtil<T> {
     fn vecmin(&self) -> T;
     fn vecmax(&self) -> T;
     fn normalize(&self) -> Vec<f64>;
 }
 
-impl VecUtil<i32> for SampleVec {
+impl VecUtil<i32> for Vec<i32> {
     fn vecmin(&self) -> i32 {
-        self.iter().map(|(_, s)| s).min().unwrap().to_owned()
+        self.iter().min().unwrap().to_owned()
     }
 
     fn vecmax(&self) -> i32 {
-        self.iter().map(|(_, s)| s).max().unwrap().to_owned()
-    }
-
-    fn normalize(&self) -> Vec<f64> {
-        todo!();
-    }
-}
-
-impl VecUtil<u32> for FrameVec {
-    fn vecmin(&self) -> u32 {
-        self.iter().map(|(_, s)| s).min().unwrap().to_owned()
-    }
-
-    fn vecmax(&self) -> u32 {
-        self.iter().map(|(_, s)| s).max().unwrap().to_owned()
-    }
-
-    fn normalize(&self) -> Vec<f64> {
-        todo!()
-    }
-}
-
-impl VecUtil<f64> for NormalizedFrameVec {
-    fn vecmin(&self) -> f64 {
-        todo!();
-    }
-
-    fn vecmax(&self) -> f64 {
-        todo!();
+        self.iter().max().unwrap().to_owned()
     }
 
     fn normalize(&self) -> Vec<f64> {
         let min = self.vecmin();
         let max = self.vecmax();
         let div = (max - min) as f64;
-        self.iter().map(|(_, v)| (v - min) as f64 / div).collect()
+        self.iter().map(|v| (v - min) as f64 / div).collect()
     }
 }
 
-pub fn normalize_frames(frames: FrameVec) -> NormalizedFrameVec {
-    frames.normalize().iter().enumerate().map(|(l, r)| (l, *r)).collect()
+impl VecUtil<u32> for Vec<u32> {
+    fn vecmin(&self) -> u32 {
+        self.iter().min().unwrap().to_owned()
+    }
+
+    fn vecmax(&self) -> u32 {
+        self.iter().max().unwrap().to_owned()
+    }
+
+    fn normalize(&self) -> Vec<f64> {
+        let min = self.vecmin();
+        let max = self.vecmax();
+        let div = (max - min) as f64;
+        self.iter().map(|v| (v - min) as f64 / div).collect()
+    }
 }
 
-pub fn get_indexed_samples(filename: &str, resolution: usize) -> SampleVec {
+impl VecUtil<f64> for Vec<f64> {
+    fn vecmin(&self) -> f64 {
+        self.iter().map(|v| *v).fold(f64::NAN, f64::min)
+    }
+
+    fn vecmax(&self) -> f64 {
+        self.iter().map(|v| *v).fold(f64::NAN, f64::max)
+    }
+
+    fn normalize(&self) -> Vec<f64> {
+        let min = self.vecmin();
+        let max = self.vecmax();
+        let div = (max - min) as f64;
+        self.iter().map(|v| (v - min) as f64 / div).collect()
+    }
+}
+
+pub fn get_indexed_samples(filename: &str, resolution: usize) -> Vec<Sample> {
     let mut reader = hound::WavReader::open(filename).unwrap();
     let wav_samples = reader.samples::<i32>();
     let samples_len = wav_samples.len();
@@ -76,7 +72,7 @@ pub fn get_indexed_samples(filename: &str, resolution: usize) -> SampleVec {
         samples_len / resolution
     );
 
-    let samples: SampleVec = wav_samples
+    let samples: Vec<Sample> = wav_samples
         .enumerate()
         .map(|(i, s)| (i, s.unwrap()))
         .collect();

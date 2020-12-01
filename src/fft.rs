@@ -1,3 +1,5 @@
+use super::preprocess::*;
+
 use rustfft::num_complex::Complex;
 use rustfft::num_traits::Zero;
 use rustfft::FFTplanner;
@@ -6,6 +8,7 @@ use plotlib::page::Page;
 use plotlib::repr::Plot;
 use plotlib::style::{PointMarker, PointStyle};
 use plotlib::view::ContinuousView;
+
 
 pub fn run_fft(config: &super::config::ComputationArguments) {
     let raw_samples = super::preprocess::get_indexed_samples(config.input_file.as_str(), config.sample_resolution);
@@ -32,13 +35,19 @@ pub fn run_fft(config: &super::config::ComputationArguments) {
 fn render_real(fft_result: &Vec<Complex<f32>>) {
     let num_of_samples = fft_result.len();
 
-    let indexed_samples = fft_result
+    let samples: Vec<f64> = fft_result
         .iter()
-        .enumerate()
-        .map(|(i, s)| (i as f64, s.re as f64))
+        .map(|s| s.re as f64)
         .collect();
+    
+    // TODO: These dereference operators seem wrong.
+    let indexed_samples: Vec<NormalizedFrame> = samples.normalize()
+    .iter()
+    .enumerate()
+    .map(|(i, v)| (i, *v))
+    .collect();
 
-    let s1: Plot = Plot::new(indexed_samples).point_style(
+    let s1: Plot = Plot::new(indexed_samples.iter().map(|(i, v)| (*i as f64, *v)).collect()).point_style(
         PointStyle::new()
             .marker(PointMarker::Circle)
             .size(0.3)
@@ -48,7 +57,7 @@ fn render_real(fft_result: &Vec<Complex<f32>>) {
     let v = ContinuousView::new()
         .add(s1)
         .x_range(0., num_of_samples as f64)
-        .y_range(-20000., 20000.)
+        .y_range(-1., 1.)
         .x_label("number")
         .y_label("real portion");
 
